@@ -1,15 +1,23 @@
+var urlMaps = localStorage["urlMaps"];
+var urls = [];
+function getUrls(map) {
+    for (var m in map) {
+        url.push(m);
+    }
+};
+console.log(urls);
 chrome.webRequest.onBeforeRequest.addListener(
     function(request) {
-        var url = request.url.replace('googleapis.com', 'lug.ustc.edu.cn');
-        url = url.replace('themes.googleusercontent.com', 'google-themes.lug.ustc.edu.cn');
+        var url = request.url;
+        for (var u in urls) {
+            if (url.includes(u)) {
+                url.replace(u, urlMaps[u]);
+            }
+        }
         return {redirectUrl: url};
     },
     {
-        urls: [
-            "*://ajax.googleapis.com/*",
-            "*://fonts.googleapis.com/*",
-            "*://themes.googleusercontent.com/*"
-        ]
+        urls:urls
     },
     ["blocking"]
 );
