@@ -10,17 +10,15 @@ var defaultMaps = {
 "www.gravatar.com":	"gravatar.lug.ustc.edu.cn"
 };
 
+function onError(value){
+    console.log(value);
+};
 
 function loadOptions() {
-	var urlMaps = localStorage["urlMaps"];
-
-	// valid colors are red, blue, green and yellow
-	if (urlMaps == undefined) {
-		urlMaps = defaultMaps;
-	}
-    
+    var s = chrome.storage.local;
     var node = document.getElementById("settings");
     var configInput = document.getElementById("config");
+    
     for (var p in defaultMaps){
       if (defaultMaps.hasOwnProperty(p)){
           var container = document.createElement("div");
@@ -30,30 +28,41 @@ function loadOptions() {
           label.setAttribute("id", p);
           var text = document.createTextNode(p);
           label.appendChild(text);
-          input.setAttribute("value",urlMaps[p]);
+          if (s.get(p, onError)){
+              input.setAttribute("value", s.get(p, onError));
+          }
+          else{
+              input.setAttribute("value", defaultMaps[p]);
+          }
           container.appendChild(label);
           container.appendChild(input);
           node.appendChild(container);
       }
     }
-}
+};
 
 function saveOptions() {
+    var s = chrome.storage.local;
     var res = {};
+    var urls = [];
 	var inputs = document.getElementsByTagName('input');
-	for (var input in inputs) {
-        var key = input.getAttribute("name");
-        var value = input.getAttribute("value");
-        res[key] = value;
+	for (var i = 0; i < inputs.length; i++) {
+        var key = inputs[i].getAttribute("name");
+        var value = inputs[i].getAttribute("value");
+        res[key] = value ;
+        urls.push("*://"+key+"/*");
     }
-    
-	localStorage["urlMaps"] = res;
-}
+    s.set(res, onError);
+    s.set({'urls':urls}, onError);
+};
 
 function eraseOptions() {
-	localStorage.removeItem("urlMaps");
-	location.reload();
-}
+    var s = chrome.storage.local;
+    var l = [];
+    
+    s.set({'urls': []}, onError);
+    s.set(defaultMaps, onError);
+};
 
 window.addEventListener('load',loadOptions);
 var save = document.getElementById('save');
